@@ -1,0 +1,8 @@
+[all]
+localhost ansible_connection=local
+
+[all:vars]
+zbx_db_host = zbx-db.zbx-nw
+zbx_db_name = zabbix
+zbx_user_name = zabbix
+zbx_user_password = zabbix

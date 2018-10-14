@@ -1,0 +1,52 @@
+---
+- name: Pull centos7 image.
+  docker_image:
+    name: centos:centos7
+    pull: yes
+
+- name: Copy Zabbix Server Dockerfile.
+  template:
+    src: Dockerfile-zbx-srv.j2
+    dest: "{{ role_path }}/files/Dockerfile-zbx-srv"
+
+- name: Copy Zabbix Server Config File.
+  template:
+    src: zabbix_server.conf.j2
+    dest: "{{ role_path }}/files/zabbix_server.conf"
+
+- name: Build Zabbix Server Container Image.
+  docker_image:
+    path: "{{ role_path }}/files"
+    dockerfile: Dockerfile-zbx-srv
+    name: zbx-srv
+    tag: latest
+    pull: no
+    state: present
+
+- name: Copy Zabbix Web Dockerfile.
+  template:
+    src: Dockerfile-zbx-web.j2
+    dest: "{{ role_path }}/files/Dockerfile-zbx-web"
+
+- name: Build Zabbix Web Container Image.
+  docker_image:
+    path: "{{ role_path }}/files"
+    dockerfile: Dockerfile-zbx-web
+    name: zbx-web
+    tag: latest
+    pull: no
+    state: present
+
+- name: Copy Zabbix DB Dockerfile.
+  template:
+    src: Dockerfile-zbx-db.j2
+    dest: "{{ role_path }}/files/Dockerfile-zbx-db"
+
+- name: Build Zabbix DB Container Image.
+  docker_image:
+    path: "{{ role_path }}/files"
+    dockerfile: Dockerfile-zbx-db
+    name: zbx-db
+    tag: latest
+    pull: no
+    state: present

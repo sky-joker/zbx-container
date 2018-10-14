@@ -1,0 +1,71 @@
+---
+- name: Create of /opt/zbxdb directory.
+  file:
+    path: /opt/zbxdb
+    state: directory
+    owner: 27
+    group: 27
+    mode: 0755
+
+- name: Start zabbix db container.
+  docker_container:
+    image: zbx-db:latest
+    name: zbx-db
+    detach: yes
+    pull: no
+    purge_networks: yes
+    volumes:
+      - /opt:/opt:rw
+    networks:
+      - name: zbx-nw
+    state: started
+
+- name: Wait till ib_logfile0 is created
+  wait_for:
+    path: /opt/zbxdb/ib_logfile0
+
+- name: Wait till ib_logfile1 is created
+  wait_for:
+    path: /opt/zbxdb/ib_logfile1
+
+- name: Create zabbix database
+  shell: docker exec zbx-db sh -c "mysql -u root -e 'create database if not exists {{ zbx_db_name }}';"
+
+- name: Create zabbix tables.
+  shell: docker exec zbx-db sh -c "zcat /root/create.sql.gz | mysql -u root {{ zbx_db_name }}"
+  ignore_errors: yes
+
+- name: Create db user local.
+  shell: docker exec zbx-db sh -c "mysql -u root -e 'grant all privileges on {{ zbx_db_name }}.* to \"{{ zbx_user_name }}\"@\"localhost\" identified by \"{{ zbx_user_password }}\";'"
+
+- name: Create db user zbx-srv.
+  shell: docker exec zbx-db sh -c "mysql -u root -e 'grant all privileges on {{ zbx_db_name }}.* to \"{{ zbx_user_name }}\"@\"zbx-srv.zbx-nw\" identified by \"{{ zbx_user_password }}\";'"
+
+- name: Create db user zbx-web.
+  shell: docker exec zbx-db sh -c "mysql -u root -e 'grant all privileges on {{ zbx_db_name }}.* to \"{{ zbx_user_name }}\"@\"zbx-web.zbx-nw\" identified by \"{{ zbx_user_password }}\";'"
+
+- name: Start zabbix web container.
+  docker_container:
+    image: zbx-web:latest
+    name: zbx-web
+    detach: yes
+    pull: no
+    purge_networks: yes
+    networks:
+      - name: zbx-nw
+    published_ports:
+      - 80:80
+    state: started
+
+- name: Start zabbix server container.
+  docker_container:
+    image: zbx-srv:latest
+    name: zbx-srv
+    detach: yes
+    pull: no
+    purge_networks: yes
+    networks:
+      - name: zbx-nw
+    published_ports:
+      - 10051:10051
+    state: started
