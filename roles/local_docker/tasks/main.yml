@@ -20,13 +20,15 @@
       - name: zbx-nw
     state: started
 
-- name: Wait till ib_logfile0 is created
-  wait_for:
-    path: /opt/zbxdb/ib_logfile0
+- name: Get zbx-srv ipaddress.
+  shell: "docker inspect -f '{% raw %}{{ $networks := index .NetworkSettings.Networks \"zbx-nw\" }}{{ $networks.IPAddress }}{% endraw %}' zbx-db"
+  register: zbx_db_ip
 
-- name: Wait till ib_logfile1 is created
+- name: Wait mariadb start.
   wait_for:
-    path: /opt/zbxdb/ib_logfile1
+    host: "{{ zbx_db_ip.stdout }}"
+    port: 3306
+    state: started
 
 - name: Create zabbix database
   shell: docker exec zbx-db sh -c "mysql -u root -e 'create database if not exists {{ zbx_db_name }}';"
