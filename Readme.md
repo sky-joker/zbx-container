@@ -24,7 +24,7 @@ Zabbixのコンテナを作成して動作させるためのPlaybookです。　
 
 # 使い方
 
-## 必要パッケージインストール(e.g. Centos7)
+## 必要パッケージインストール(e.g. CentOS7)
 
 ```shell-session
 [root@localhost ~]# yum -y install ansible docker git python-docker-py
