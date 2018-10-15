@@ -46,6 +46,7 @@ Zabbixのコンテナを作成して動作させるためのPlaybookです。　
 ## 実行
 
 ```shell-session
+[root@localhost ~]# cd zbx-container/
 [root@localhost zbx-container]# ansible-playbook installer.yml -i inventory
 ```
 
