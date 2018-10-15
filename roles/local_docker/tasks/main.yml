@@ -20,7 +20,7 @@
       - name: zbx-nw
     state: started
 
-- name: Get zbx-srv ipaddress.
+- name: Get zbx-db ipaddress.
   shell: "docker inspect -f '{% raw %}{{ $networks := index .NetworkSettings.Networks \"zbx-nw\" }}{{ $networks.IPAddress }}{% endraw %}' zbx-db"
   register: zbx_db_ip
 
